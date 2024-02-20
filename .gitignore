@@ -1,0 +1,5 @@
+.idea
+venv/
+afisha/__pycache__
+movie_app/__pycache__
+movie_app/migrations/__pycache__
