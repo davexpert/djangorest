@@ -3,6 +3,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from . import serializer, models
+from django.db.models import Avg
+from .models import Movie, Review
+from .serializer import MovieSerializer
 
 
 @api_view(['GET'])
@@ -67,3 +70,16 @@ def test(request):
         ]
     }
     return Response(data=context)
+
+@api_view(['GET'])
+def get_movies_reviews(request):
+    movies = Movie.objects.all()
+    serializer = MovieSerializer(movies, many=True)
+    avg_rating = Review.objects.aggregate(Avg('stars'))['stars__avg']
+
+    response_data = {
+        'movies': serializer.data,
+        'avg_rating': avg_rating
+    }
+
+    return Response(response_data)
