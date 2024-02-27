@@ -31,7 +31,7 @@ class MovieSerializer(serializers.ModelSerializer):
 
     def get_director(self, movie):
         try:
-            return movie.director.name
+            return f'{movie.director.id}-{movie.director.name}'
         except:
             return "No director found"
 
