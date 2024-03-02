@@ -15,12 +15,21 @@ def movie_list_view(request):
         data = serializer.MovieSerializer(movie, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
+        serializers = serializer.MovieCreateUpdateSerializer(data=request.data)
+        if not serializers.is_valid():
+            return Response(data={'errors': serializers.errors}, status=status.HTTP_406_NOT_ACCEPTABLE)
         print(request.data)
-        # title = request.data.get('title')
-        # description = request.data.get('description')
-        # duration = request.data.get('duration')
-        # director = request.data.get('director')
-        movie = models.Movie.objects.create(**request.data)
+        title = request.data.get('title')
+        description = request.data.get('description')
+        duration = request.data.get('duration')
+        director_id = request.data.get('director_id')
+        # movie = models.Movie.objects.create(**request.data)
+        movie = models.Movie.objects.create(title=title, description=description, duration=duration,
+                                                director_id=director_id)
+
+        for i in request.data.get("reviews", []):
+            models.Review.objects.create(stars=i['stars'], text=i['text'], movie=movie)
+
 
         return Response(data=serializer.MovieSerializer(movie).data,
                         status=status.HTTP_201_CREATED)
@@ -60,6 +69,9 @@ def director_list_view(request):
         data = serializer.DirectorSerializer(director, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
+        serializers = serializer.DirectorCreateSerializer(data=request.data)
+        if not serializers.is_valid():
+            return Response(data={'errors': serializers.errors}, status=status.HTTP_406_NOT_ACCEPTABLE)
         director = models.Director.objects.create(**request.data)
         return Response(status=status.HTTP_201_CREATED,
                         data=serializer.DirectorSerializer(director).data)
@@ -89,6 +101,9 @@ def review_list_view(request):
         data = serializer.ReviewSerializer(movie, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
+        serializers = serializer.ReviewCreateUpdateSerializer(data=request.data)
+        if not serializers.is_valid():
+            return Response(data={'errors': serializers.errors}, status=status.HTTP_406_NOT_ACCEPTABLE)
         review = models.Review.objects.create(**request.data)
         return Response(data=serializer.ReviewSerializer(review).data,
                         status=status.HTTP_201_CREATED)
