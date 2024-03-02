@@ -46,6 +46,10 @@ class MovieSerializer(serializers.ModelSerializer):
 
 class DirectorCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=40)
+    def validate_name(self, value):
+        if not value:
+            raise serializers.ValidationError("Поле 'name' обязательно для заполнения.")
+        return value
 
 
 class ReviewCreateUpdateSerializer(serializers.Serializer):
