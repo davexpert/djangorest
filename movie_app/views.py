@@ -1,12 +1,21 @@
+import logging
+from venv import logger
+
+from allauth.account.models import EmailConfirmationHMAC
+from allauth.account.utils import send_email_confirmation
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.authtoken.admin import User
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from . import serializer, models
 from django.db.models import Avg
 from .models import Movie, Review
 from .serializer import MovieSerializer
-
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 
 @api_view(['GET', 'POST'])
 def movie_list_view(request):
@@ -141,6 +150,7 @@ def test(request):
     }
     return Response(data=context)
 
+
 @api_view(['GET'])
 def get_movies_reviews(request):
     movies = Movie.objects.all()
@@ -153,3 +163,64 @@ def get_movies_reviews(request):
     }
 
     return Response(response_data)
+
+
+@api_view(['POST'])
+def authorization(request):
+    if request.method == 'POST':
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            Token.objects.filter(user=user).delete()
+
+            token = Token.objects.create(user=user)
+            return Response(data={'key': token.key},
+                                status=status.HTTP_200_OK)
+
+        return Response(data={'error': "User not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def registration(request):
+    if request.method == 'POST':
+        username = request.data.get('username')
+        password = request.data.get('password')
+        email = request.data.get('email')
+        User.objects.create_user(username=username,
+                                 password=password,
+                                 email=email
+                                )
+        send_email_confirmation(request, User)
+
+        return Response(data={'message': "User created successfully"},
+                        status=status.HTTP_201_CREATED)
+
+
+
+logger = logging.getLogger(__name__)
+@api_view(['GET'])
+def activate_user(request, key):
+    logger.info("Activating user with key: %s", key)
+    try:
+        email_confirmation = EmailConfirmationHMAC.from_key(key)
+    except:
+        raise Http404("Invalid or expired activation key")
+
+    if email_confirmation:
+        logger.info("Email confirmation found")
+        email_confirmation.confirm(request)
+        return HttpResponse("User activated successfully")
+    else:
+        logger.info("No email confirmation found")
+        raise Http404("Invalid or expired activation key")
+
+
+
+@permission_classes([IsAuthenticated])
+@api_view(['GET'])
+def user_reviews(request):
+    reviews = models.Review.objects.filter(author=request.user)
+    serializers = serializer.ReviewSerializer(reviews, many=True)
+    return Response(data=serializers.data)
