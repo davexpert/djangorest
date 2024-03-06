@@ -18,5 +18,8 @@ urlpatterns = [
     path('api/v1/user/reviews/', views.user_reviews),
 
     # path('accounts/activate/<str:key>/', views.activate_user),
-    path('api/v1/activate/<str:key>', views.activate_user),
+    # path('api/v1/activate/<str:key>', views.activate_user),
+
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
 ]
