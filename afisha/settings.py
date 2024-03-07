@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'djoser',
+    'class_based_views',
 ]
 
 REST_FRAMEWORK = {

@@ -22,4 +22,7 @@ urlpatterns = [
 
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
+
+    path('api/v1/cbv/', include("class_based_views.urls")),
+
 ]
