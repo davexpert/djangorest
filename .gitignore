@@ -4,3 +4,5 @@ afisha/__pycache__
 movie_app/__pycache__
 movie_app/migrations/__pycache__
 class_based_views/__pycache__
+db.sqlite3
+.env
